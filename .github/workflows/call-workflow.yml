@@ -1,0 +1,12 @@
+name: Call workflow example
+
+on:
+  pull_request:
+
+jobs:
+
+  CallWorkflow:
+    permissions:
+      contents: read
+      id-token: write
+    uses: duboisf/get-reusable-workflow-reference/.github/workflows/example.yml@v1
