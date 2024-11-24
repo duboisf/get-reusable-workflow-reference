@@ -1,4 +1,4 @@
-name: Example
+name: Example workflow that can get it's own reference
 on:
   push:
   pull_request:
