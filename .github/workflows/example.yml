@@ -1,0 +1,42 @@
+name: Example
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+jobs:
+  Example:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Needed to get the called workflow reference
+      id-token: write
+    steps:
+      - name: Get called workflow reference
+        run: |
+          JWT=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL")
+          PAYLOAD=$(echo "$JWT" | cut -d '.' -f 2 | base64 -d 2>/dev/null || true)
+
+          WORKFLOW_FULL_REF=$(echo "$PAYLOAD" | jq -r '.job_workflow_ref | split("@")[1]')
+
+          echo "WORKFLOW_FULL_REF=$WORKFLOW_FULL_REF"
+
+          case $WORKFLOW_FULL_REF in
+            refs/heads/*)
+              WORKFLOW_REF=${WORKFLOW_FULL_REF#refs/heads/}
+              ;;
+            refs/tags/*)
+              WORKFLOW_REF=${WORKFLOW_FULL_REF#refs/tags/}
+              ;;
+            refs/pull/*/merge)
+              # exception: we got triggered by a pull request, the ref is the base branch
+              WORKFLOW_REF=$GITHUB_HEAD_REF
+              ;;
+          esac
+
+          echo "WORKFLOW_REF=$WORKFLOW_REF" | tee -a $GITHUB_ENV
+
+      - uses: actions/checkout@v4
+        with:
+          repository: duboisf/get-reusable-workflow-reference
+          ref: ${{ env.WORKFLOW_REF }}
