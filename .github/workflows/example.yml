@@ -34,9 +34,16 @@ jobs:
               ;;
           esac
 
+          echo "::notice ::WORKFLOW_FULL_REF=$WORKFLOW_FULL_REF"
+          echo "::notice ::WORKFLOW_REF=$WORKFLOW_REF"
+
           echo "WORKFLOW_REF=$WORKFLOW_REF" | tee -a $GITHUB_ENV
 
       - uses: actions/checkout@v4
         with:
           repository: duboisf/get-reusable-workflow-reference
           ref: ${{ env.WORKFLOW_REF }}
+
+      - name: Run script from called workflow
+        run: |
+          ./scripts/example.sh
